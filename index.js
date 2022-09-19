@@ -16,3 +16,30 @@ const db = mysql.createConnection(
   },
   console.log('Successfully connected to the database!')
 );
+
+async function promptUserForAction() {
+  const { action } = await inquirer.prompt({
+    type: 'list',
+    name: 'action',
+    message: 'What would you like to do?',
+    choices: [
+      'View all departments',
+      'View all roles',
+      'View all employees',
+      'View employees by manager',
+      'View employees by department',
+      'Add a department',
+      'Add a role',
+      'Add an employee',
+      'Update an employee\'s role',
+      'Update an employee\'s manager'
+    ]
+  });
+};
+
+// prompt user to select a query on startup
+function initializeApp() {
+  promptUserForAction();
+};
+
+initializeApp();
