@@ -17,6 +17,11 @@ const db = mysql.createConnection(
   console.log('Successfully connected to the database!')
 );
 
+// prompt user to select a query on startup
+function initializeApp() {
+  promptUserForAction();
+};
+
 async function promptUserForAction() {
   const { action } = await inquirer.prompt({
     type: 'list',
@@ -48,10 +53,6 @@ async function promptUserForAction() {
   if (action === 'Update an employee\'s manager') { updateEmployeeManager() }
 };
 
-// prompt user to select a query on startup
-function initializeApp() {
-  promptUserForAction();
-};
 
 function viewDepartments() {
   const query = new Query().viewDepartments();
@@ -249,4 +250,51 @@ async function updateEmployeeManager() {
   updateData(query);
 }
 
+// prompt user for next step after completing a query
+function promptUserToContinue() {
+  return inquirer
+    .prompt({
+      type: 'list',
+      name: 'nextStep',
+      message: 'Would you like to continue?',
+      choices: [
+        'Continue',
+        'EXIT'
+      ]
+    })
+    .then(({ nextStep }) => {
+      if (nextStep === 'EXIT') {
+        console.log('Bye!');
+        db.end();
+      } else {
+        promptUserForAction();
+      }
+    });
+}
+
+// run user selected query, then display data to user
+function viewData(query) {
+  db.promise()
+    .query(query.sql, query.params)
+    .then(response => {
+      if (!response[0].length) {
+        console.log('\nNothing found.\n');
+        return;
+      }
+      console.log(``);
+      console.table(response[0]);
+    })
+    .then(() => promptUserToContinue());
+}
+
+// run user selected query, then update database
+function updateData(query) {
+  db.promise()
+    .query(query.sql, query.params)
+    .then(() => console.log(query.successMessage))
+    .then(() => promptUserToContinue());
+}
+
 initializeApp();
+
+module.exports = db;
